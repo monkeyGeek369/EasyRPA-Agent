@@ -1,6 +1,7 @@
 from RestrictedPython import compile_restricted, safe_builtins
 from RestrictedPython.PrintCollector import PrintCollector
 
+
 # 用户提交的代码，这段代码将访问外部传入的参数 `external_data`
 user_code = """
 def process_data(data):
