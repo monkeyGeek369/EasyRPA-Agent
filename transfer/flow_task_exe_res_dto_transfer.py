@@ -1,5 +1,5 @@
-from agent_models.res.flow_task_exe_res_dto import FlowTaskExeResDTO
-from agent_models.req.flow_task_exe_req_dto import FlowTaskExeReqDTO
+from easyrpa.models.agent_models.flow_task_exe_res_dto import FlowTaskExeResDTO
+from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
 from easyrpa.models.scripty_exe_result import ScriptExeResult
 
 def res_to_FlowTaskExeResDTO(req:FlowTaskExeReqDTO,res:ScriptExeResult) -> FlowTaskExeResDTO:

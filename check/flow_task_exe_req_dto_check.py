@@ -1,4 +1,4 @@
-from agent_models.req.flow_task_exe_req_dto import FlowTaskExeReqDTO
+from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
 from easyrpa.models.easy_rpa_exception import EasyRpaException
 from easyrpa.enums.easy_rpa_exception_code_enum import EasyRpaExceptionCodeEnum
 from easyrpa.tools import str_tools,number_tool

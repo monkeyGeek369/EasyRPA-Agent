@@ -4,7 +4,7 @@ from check import flow_task_exe_req_dto_check
 from easyrpa.script_exe.subprocess_python_script import subprocess_script_run
 import json
 from transfer.flow_task_exe_res_dto_transfer import res_to_FlowTaskExeResDTO
-from agent_models.res.flow_task_exe_res_dto import FlowTaskExeResDTO
+from easyrpa.models.agent_models.flow_task_exe_res_dto import FlowTaskExeResDTO
 import platform
 
 

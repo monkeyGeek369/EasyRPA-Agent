@@ -1,5 +1,5 @@
-import agent_models.req.flow_task_exe_req_dto as task_req
+from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
 
 def req_to_FlowTaskExeReqDTO(req_json):
-    dto = task_req.FlowTaskExeReqDTO(**req_json)
+    dto = FlowTaskExeReqDTO(**req_json)
     return dto
