@@ -4,7 +4,7 @@ from easyrpa.enums.easy_rpa_exception_code_enum import EasyRpaExceptionCodeEnum
 from easyrpa.tools import str_tools,number_tool
 
 def base_check(dto:FlowTaskExeReqDTO):
-    if dto is None:
+    if not dto:
         raise EasyRpaException("请求参数为空",EasyRpaExceptionCodeEnum.DATA_NULL.code,None,dto)
     if number_tool.num_is_empty(dto.task_id):
         raise EasyRpaException("任务id为空",EasyRpaExceptionCodeEnum.DATA_NULL.code,None,dto)
