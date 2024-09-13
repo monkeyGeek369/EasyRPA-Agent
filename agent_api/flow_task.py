@@ -3,12 +3,11 @@ from transfer import flow_task_exe_req_dto_transfer
 from check import flow_task_exe_req_dto_check 
 from easyrpa.script_exe.subprocess_python_script import subprocess_script_run,env_activate_command_builder
 import json
-from transfer.flow_task_exe_res_dto_transfer import res_to_FlowTaskExeResDTO
 from easyrpa.models.agent_models.flow_task_exe_res_dto import FlowTaskExeResDTO
 import platform
 from easyrpa.models.base.script_exe_param_model import ScriptExeParamModel
 from easyrpa.tools.request_tool import get_current_header
-from easyrpa.tools.transfer_tools import any_to_str_dict
+from easyrpa.tools.transfer_tools import any_to_str_dict_first_level
 from core.script_exe_core import ScriptExeCore
 
 
@@ -40,8 +39,8 @@ def flow_task_async_exe() -> FlowTaskExeResDTO:
         script_params = ScriptExeParamModel()
         script_params.header = get_current_header()
         script_params.source = flow_task.sub_source
-        script_params.standard = any_to_str_dict(flow_task.flow_standard_message)
-        params = any_to_str_dict(script_params)
+        script_params.standard = json.loads(flow_task.flow_standard_message)
+        params = any_to_str_dict_first_level(script_params)
 
         # 异步执行脚本
         ScriptExeCore.async_exe_script(flow_task,env_activate_command,python_interpreter,flow_task.flow_exe_script,params)
