@@ -9,11 +9,13 @@ from easyrpa.models.base.script_exe_param_model import ScriptExeParamModel
 from easyrpa.tools.request_tool import get_current_header
 from easyrpa.tools.transfer_tools import any_to_str_dict_first_level
 from core.script_exe_core import ScriptExeCore
+from easyrpa.tools.request_tool import easyrpa_request_wrapper
 
 
 flow_task_bp =  Blueprint('flow_task',__name__)
 
 @flow_task_bp.route('/flow/task/async/exe', methods=['POST'])
+@easyrpa_request_wrapper
 def flow_task_async_exe() -> FlowTaskExeResDTO:
     """flow task sync exe
     Args:
@@ -46,9 +48,9 @@ def flow_task_async_exe() -> FlowTaskExeResDTO:
         ScriptExeCore.async_exe_script(flow_task,env_activate_command,python_interpreter,flow_task.flow_exe_script,params)
 
         # 构建回执对象
-        return jsonify(FlowTaskExeResDTO(status=True,error_msg="调用agent成功").to_dict()), 200
+        return FlowTaskExeResDTO(status=True,error_msg="调用agent成功")
 
     except (ValueError, json.JSONDecodeError) as e:
-        return jsonify(FlowTaskExeResDTO(status=False,error_msg=str(e)).to_dict()), 400
+        return FlowTaskExeResDTO(status=False,error_msg=str(e))
     except Exception as e:
-        return jsonify(FlowTaskExeResDTO(status=False,error_msg=str(e)).to_dict()), 500 
+        return FlowTaskExeResDTO(status=False,error_msg=str(e))
