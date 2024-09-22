@@ -25,10 +25,6 @@ def flow_task_async_exe(flow_task:FlowTaskExeReqDTO):
     Returns:
         FlowTaskExeResDTO: exe result
     """
-    # 获取请求对象
-    if flow_task is None:
-        raise EasyRpaException("request json is empty",EasyRpaExceptionCodeEnum.DATA_NOT_FOUND.value[1],None,req_json)
-    
     # 校验请求对象
     flow_task_exe_req_dto_check.base_check(flow_task)
 
