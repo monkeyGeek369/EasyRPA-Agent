@@ -8,4 +8,4 @@ base_app.init_thread_pool()
 atexit.register(base_app.shutdown_thread_pool)
 
 if __name__ == '__main__':
-    flask_app.run(host='127.0.0.1', port=5006, debug=True)
+    flask_app.run(host='127.0.0.1', port=5006, debug=True,use_reloader=False)
