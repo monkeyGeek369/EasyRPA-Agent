@@ -17,7 +17,7 @@ flow_task_bp =  Blueprint('flow_task',__name__)
 
 @flow_task_bp.route('/flow/task/async/exe', methods=['POST'])
 @easyrpa_request_wrapper
-def flow_task_async_exe(flow_task:FlowTaskExeReqDTO):
+def flow_task_async_exe(req:FlowTaskExeReqDTO):
     """flow task sync exe
     Args:
         FlowTaskExeReqDTO: req json data
@@ -25,6 +25,19 @@ def flow_task_async_exe(flow_task:FlowTaskExeReqDTO):
     Returns:
         FlowTaskExeResDTO: exe result
     """
+    flow_task = FlowTaskExeReqDTO(
+        task_id=req.get("task_id"),
+        site_id=req.get("site_id"),
+        flow_id=req.get("flow_id"),
+        flow_code=req.get("flow_code"),
+        flow_name=req.get("flow_name"),
+        flow_rpa_type=req.get("flow_rpa_type"),
+        flow_exe_env=req.get("flow_exe_env"),
+        flow_standard_message=req.get("flow_standard_message"),
+        flow_exe_script=req.get("flow_exe_script"),
+        sub_source=req.get("sub_source")
+    )
+
     # 校验请求对象
     flow_task_exe_req_dto_check.base_check(flow_task)
 
