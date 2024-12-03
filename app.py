@@ -1,6 +1,13 @@
 from application import flask_app
 from application import base_app
 import atexit
+from core.dispatch_task_core import init_heartbaet_check
+
+# 初始化定时任务
+scheduler_tool = init_heartbaet_check()
+
+# 注册job调度shutdown
+atexit.register(scheduler_tool.shutdown)
 
 # 初始化线程池
 base_app.init_thread_pool()

@@ -1,17 +1,16 @@
-from flask import jsonify,Blueprint
+from flask import Blueprint
 from check import flow_task_exe_req_dto_check 
 from easyrpa.script_exe.subprocess_python_script import env_activate_command_builder
 from flask import current_app
-from easyrpa.models.agent_models.flow_task_exe_res_dto import FlowTaskExeResDTO
 from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
 from easyrpa.tools.request_tool import get_current_header
 from core.script_exe_core import ScriptExeCore
+from core import dispatch_task_core
 from easyrpa.tools.request_tool import easyrpa_request_wrapper
-from easyrpa.models.easy_rpa_exception import EasyRpaException
-from easyrpa.enums.easy_rpa_exception_code_enum import EasyRpaExceptionCodeEnum
 import easyrpa.tools.debug_tools as my_debug
 from easyrpa.tools.thread_pool_util import ThreadPoolUtil
-from easyrpa.tools import local_store_tools
+from easyrpa.tools import local_store_tools,logs_tool
+from easyrpa.enums.sys_log_type_enum import SysLogTypeEnum
 
 
 flow_task_bp =  Blueprint('flow_task',__name__)
@@ -26,9 +25,15 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
     Returns:
         FlowTaskExeResDTO: exe result
     """
+    # check task
+    if local_store_tools.get_data("task_id") is not None:
+        dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.WARN.value[1],message='robot is running,current task is ' + local_store_tools.get_data("task_id"))
+        return False
+
     # cache task id
     task_id = req.get("task_id")
     local_store_tools.add_data("task_id", task_id)
+    dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.INFO.value[1],message='robot get new task ' + local_store_tools.get_data("task_id"))
 
     try:
         # 构建请求对象
@@ -75,8 +80,16 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
     except Exception as e:
         # remove task id
         local_store_tools.delete_data("task_id")
-        # raise exception
-        raise e
+
+        # add log
+        logs_tool.log_script_error(title="flow_task_async_exe",message="task run error",data=req,exc_info=e)
+        
+        # report log
+        dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error: task id is ' + local_store_tools.get_data("task_id") + '; message: ' + str(e))
+        
+        # return
+        return False
+        
 
     # 构建回执对象
     return True

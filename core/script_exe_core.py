@@ -2,6 +2,8 @@ from easyrpa.script_exe.subprocess_python_script import subprocess_script_run
 from transfer.flow_task_exe_res_dto_transfer import res_to_FlowTaskExeResDTO
 from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
 from easyrpa.models.agent_models.flow_task_exe_res_dto import FlowTaskExeResDTO
+from easyrpa.enums.sys_log_type_enum import SysLogTypeEnum
+from core import dispatch_task_core
 import requests
 from easyrpa.tools import request_tool,local_store_tools
 
@@ -21,11 +23,14 @@ class ScriptExeCore:
             self.script_exe_result_push(result,url=callback_url)
             
         except Exception as e:
+            dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error: task id is ' + local_store_tools.get_data("task_id") + '; message: ' + str(e))
             raise e
         finally:
             # remove task id
             local_store_tools.delete_data("task_id")
 
     def script_exe_result_push(self,result:FlowTaskExeResDTO,url:str):
-        # 发送请求
+        dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.INFO.value[1],message='robot exec ended,release task is ' + local_store_tools.get_data("task_id"))
+        
+        # send result
         requests.post(url, json=request_tool.request_base_model_json_builder(result))
