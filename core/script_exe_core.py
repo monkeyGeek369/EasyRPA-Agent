@@ -23,6 +23,7 @@ class ScriptExeCore:
             self.script_exe_result_push(result,url=callback_url)
             
         except Exception as e:
+            dispatch_task_core.heartbeat_check_handler()
             dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error: task id is ' + local_store_tools.get_data("task_id") + '; message: ' + str(e))
             raise e
         finally:
@@ -31,6 +32,7 @@ class ScriptExeCore:
 
     def script_exe_result_push(self,result:FlowTaskExeResDTO,url:str):
         dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.INFO.value[1],message='robot exec ended,release task is ' + local_store_tools.get_data("task_id"))
+        dispatch_task_core.heartbeat_check_handler()
         
         # send result
         requests.post(url, json=request_tool.request_base_model_json_builder(result))

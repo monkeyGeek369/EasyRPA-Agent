@@ -33,6 +33,7 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
     # cache task id
     task_id = req.get("task_id")
     local_store_tools.add_data("task_id", task_id)
+    dispatch_task_core.heartbeat_check_handler()
     dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.INFO.value[1],message='robot get new task ' + local_store_tools.get_data("task_id"))
 
     try:
@@ -86,6 +87,7 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
         
         # report log
         dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error: task id is ' + local_store_tools.get_data("task_id") + '; message: ' + str(e))
+        dispatch_task_core.heartbeat_check_handler()
         
         # return
         return False
