@@ -27,11 +27,11 @@ def heartbeat_check_handler(params):
         # report
         requests.post(url, json=request_tool.request_base_model_json_builder(params))
         
-        # gren 0-20s
+        # gren 10-20s
         import random
-        wait_time = random.uniform(0, 20) + 3*60
+        wait_time = random.uniform(10, 20)
 
-        # wait 0-20s
+        # wait 10-20s
         import time
         time.sleep(wait_time)
 
