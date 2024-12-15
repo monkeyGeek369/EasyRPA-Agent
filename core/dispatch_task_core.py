@@ -17,7 +17,7 @@ def heartbeat_check_handler(params):
         url = control_url + api_pash
 
         # build params
-        params = HeartbeatCheckReqDTO(
+        data = HeartbeatCheckReqDTO(
             robot_code=build_robot_code(),
             robot_ip=get_robot_ip(),
             port= app_config.ROBOT_SERVER_PORT,
@@ -25,7 +25,7 @@ def heartbeat_check_handler(params):
         )
 
         # report
-        requests.post(url, json=request_tool.request_base_model_json_builder(params))
+        requests.post(url, json=request_tool.request_base_model_json_builder(data))
         
         # gren 10-20s
         import random
