@@ -27,13 +27,14 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
     """
     # check task
     if local_store_tools.get_data("task_id") is not None:
-        dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.WARN.value[1],message='robot is running,current task is ' + str(local_store_tools.get_data("task_id")))
+        current_task_id = local_store_tools.get_data("task_id")
+        dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.WARN.value[1],message='robot is running,current task is ' + str(current_task_id),current_task_id=current_task_id)
         return False
 
     # cache task id
     task_id = req.get("task_id")
     local_store_tools.add_data("task_id", task_id)
-    dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.INFO.value[1],message='robot get new task ' + str(task_id))
+    dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.INFO.value[1],message='robot get new task ' + str(task_id),current_task_id=task_id)
 
     try:
         # 构建请求对象
@@ -79,7 +80,8 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
                                 ,callback_url=url)
     except Exception as e:
         # report log
-        dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error: task id is ' + str(local_store_tools.get_data("task_id")) + '; message: ' + str(e))
+        current_task_id = local_store_tools.get_data("task_id")
+        dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error: task id is ' + str(current_task_id) + '; message: ' + str(e),current_task_id=current_task_id)
 
         # remove task id
         local_store_tools.delete_data("task_id")

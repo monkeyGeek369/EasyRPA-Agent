@@ -7,21 +7,7 @@ import requests
 def heartbeat_check_handler(params):
     while True:
         try:
-            # get url
-            control_url = app_config.EASYRPA_URL
-            api_pash = app_config.HEART_BEAT_CHECK_API
-            url = control_url + api_pash
-
-            # build params
-            data = HeartbeatCheckReqDTO(
-                robot_code=build_robot_code(),
-                robot_ip=get_robot_ip(),
-                port= app_config.ROBOT_SERVER_PORT,
-                task_id=local_store_tools.get_data("task_id")
-            )
-
-            # report
-            requests.post(url, json=request_tool.request_base_model_json_builder(data))
+            agent_heartbeat()
             
             # gren 10-20s
             import random
@@ -33,6 +19,23 @@ def heartbeat_check_handler(params):
         except Exception as e:
             logs_tool.log_business_error(title="heartbeat_check_handler",message="heartbeat error",data=str(e),exc_info=e)
 
+
+def agent_heartbeat():
+    # get url
+    control_url = app_config.EASYRPA_URL
+    api_pash = app_config.HEART_BEAT_CHECK_API
+    url = control_url + api_pash
+
+    # build params
+    data = HeartbeatCheckReqDTO(
+        robot_code=build_robot_code(),
+        robot_ip=get_robot_ip(),
+        port= app_config.ROBOT_SERVER_PORT,
+        task_id=local_store_tools.get_data("task_id")
+    )
+
+    # report
+    requests.post(url, json=request_tool.request_base_model_json_builder(data))
 
 def build_robot_code() -> str:
     args = []
@@ -70,11 +73,11 @@ def get_robot_ip() -> str:
     return None
     
 
-def robot_log_report_handler(log_type:int,message:str):
+def robot_log_report_handler(log_type:int,message:str,current_task_id:int):
     # build params
     params = RobotLogReportReqDTO(
         robot_code=build_robot_code(),
-        task_id=local_store_tools.get_data("task_id"),
+        task_id=current_task_id,
         log_type=log_type,
         message=message
     )
