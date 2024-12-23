@@ -34,6 +34,9 @@ class ScriptExeCore:
             requests.post(callback_url, json=request_tool.request_base_model_json_builder(result))
 
         except Exception as e:
+            # add log
+            logs_tool.log_script_error(title="async_exe_script",message="async_exe_script run error",data=flow_task,exc_info=e)
+            
             current_task_id = local_store_tools.get_data("task_id")
 
             # remove task id
@@ -45,7 +48,5 @@ class ScriptExeCore:
             # robot log report
             dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error , current task is ' + str(current_task_id) + '; message: ' + str(e),current_task_id=current_task_id)
             
-            # add log
-            logs_tool.log_script_error(title="async_exe_script",message="async_exe_script run error",data=flow_task,exc_info=e)
 
         

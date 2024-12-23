@@ -79,6 +79,9 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
                                 ,params=params
                                 ,callback_url=url)
     except Exception as e:
+        # add log
+        logs_tool.log_script_error(title="flow_task_async_exe",message="task run error",data=req,exc_info=e)
+
         # report log
         current_task_id = local_store_tools.get_data("task_id")
         dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error: task id is ' + str(current_task_id) + '; message: ' + str(e),current_task_id=current_task_id)
@@ -86,9 +89,6 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
         # remove task id
         local_store_tools.delete_data("task_id")
 
-        # add log
-        logs_tool.log_script_error(title="flow_task_async_exe",message="task run error",data=req,exc_info=e)
-        
         # return
         return False
         
