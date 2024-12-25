@@ -4,7 +4,7 @@ from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
 from easyrpa.enums.sys_log_type_enum import SysLogTypeEnum
 from core import dispatch_task_core
 import requests
-from easyrpa.tools import request_tool,local_store_tools,logs_tool
+from easyrpa.tools import request_tool,logs_tool
 
 class ScriptExeCore:
     def async_exe_script(self,flow_task:FlowTaskExeReqDTO,env_activate_command,python_interpreter,flow_exe_script,params,callback_url:str):
@@ -19,13 +19,13 @@ class ScriptExeCore:
             result = res_to_FlowTaskExeResDTO(req=flow_task,res=script_result)
 
             # get current task id
-            current_task_id = local_store_tools.get_data("task_id")
+            current_task_id = dispatch_task_core.get_current_task_id()
 
             # robot log report
             dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.INFO.value[1],message='robot exec ended,release task is ' + str(current_task_id),current_task_id=current_task_id)
             
             # remove task id
-            local_store_tools.delete_data("task_id")
+            dispatch_task_core.release_current_task()
 
             # heartbeat inmediate
             dispatch_task_core.agent_heartbeat()
@@ -37,10 +37,10 @@ class ScriptExeCore:
             # add log
             logs_tool.log_script_error(title="async_exe_script",message="async_exe_script run error",data=flow_task,exc_info=e)
             
-            current_task_id = local_store_tools.get_data("task_id")
+            current_task_id = dispatch_task_core.get_current_task_id()
 
             # remove task id
-            local_store_tools.delete_data("task_id")
+            dispatch_task_core.release_current_task()
             
             # heartbeat inmediate
             dispatch_task_core.agent_heartbeat()

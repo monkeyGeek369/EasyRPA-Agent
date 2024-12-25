@@ -2,7 +2,10 @@ from easyrpa.models.agent_models.heartbeat_check_req_dto import HeartbeatCheckRe
 from easyrpa.tools import request_tool,local_store_tools,machine_tools,logs_tool
 from easyrpa.models.agent_models.robot_log_report_req_dto import RobotLogReportReqDTO
 from configuration import app_config
-import requests
+from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
+from easyrpa.models.agent_models.flow_task_exe_res_dto import FlowTaskExeResDTO
+from easyrpa.enums.rpa_exe_result_code_enum import RpaExeResultCodeEnum
+import requests,datetime
 
 def heartbeat_check_handler(params):
     while True:
@@ -21,8 +24,34 @@ def heartbeat_check_handler(params):
 
 
 def agent_heartbeat():
-    # get url
     control_url = app_config.EASYRPA_URL
+
+    # check current is expired
+    if current_task_is_expired():
+        # get control url
+        result_pash = app_config.TASK_RESULT_PUSH_API
+        result_url = control_url + result_pash
+        data = get_current_task()
+        # build params
+        result_parms = FlowTaskExeResDTO(
+        task_id = data.task_id,
+        site_id = data.site_id,
+        flow_id = data.flow_id,
+        flow_code = data.flow_code,
+        flow_name = data.flow_name,
+        flow_rpa_type = data.flow_rpa_type,
+        flow_exe_env = data.flow_exe_env,
+        sub_source=data.sub_source,
+        status = False,
+        error_msg = "task is expired , robot delete task",
+        print_str = None,
+        result = "task is expired , robot delete task",
+        code=RpaExeResultCodeEnum.FLOW_EXE_ERROR.value[1]
+        )
+        # report
+        requests.post(result_url, json=request_tool.request_base_model_json_builder(result_parms))
+
+    # get url
     api_pash = app_config.HEART_BEAT_CHECK_API
     url = control_url + api_pash
 
@@ -31,7 +60,7 @@ def agent_heartbeat():
         robot_code=build_robot_code(),
         robot_ip=get_robot_ip(),
         port= app_config.ROBOT_SERVER_PORT,
-        task_id=local_store_tools.get_data("task_id")
+        task_id=get_current_task_id()
     )
 
     # report
@@ -89,3 +118,34 @@ def robot_log_report_handler(log_type:int,message:str,current_task_id:int):
 
     # report
     requests.post(url, json=request_tool.request_base_model_json_builder(params))
+
+def set_current_task(req:FlowTaskExeReqDTO):
+    data = {}
+    data["task_info"] = req
+    data["max_exe_time"] = req.max_exe_time
+    data["set_time"] = datetime.datetime.now().timestamp()
+    local_store_tools.add_data("current_task", data)
+
+def release_current_task():
+    local_store_tools.delete_data("current_task")
+
+def get_current_task_id() -> int:
+    data = local_store_tools.get_data("current_task")
+    if data is not None:
+        info = data.get("task_info")
+        if info is not None:
+            return info.task_id
+    return None
+
+def current_task_is_expired() -> bool:
+    data = local_store_tools.get_data("current_task")
+    if data is not None:
+        if datetime.datetime.now().timestamp() - data.get("set_time") > data.get("max_exe_time") * 1000:
+            return True
+    return False
+
+def get_current_task() -> FlowTaskExeReqDTO:
+    data = local_store_tools.get_data("current_task")
+    if data is not None:
+        return data.get("task_info")
+    return None
