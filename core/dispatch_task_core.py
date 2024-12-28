@@ -24,47 +24,50 @@ def heartbeat_check_handler(params):
 
 
 def agent_heartbeat():
-    control_url = app_config.EASYRPA_URL
+    try:
+        control_url = app_config.EASYRPA_URL
 
-    # check current is expired
-    if current_task_is_expired():
-        # get control url
-        result_pash = app_config.TASK_RESULT_PUSH_API
-        result_url = control_url + result_pash
-        data = get_current_task()
+        # check current is expired
+        if current_task_is_expired():
+            # get control url
+            result_pash = app_config.TASK_RESULT_PUSH_API
+            result_url = control_url + result_pash
+            data = get_current_task()
+            # build params
+            result_parms = FlowTaskExeResDTO(
+            task_id = data.task_id,
+            site_id = data.site_id,
+            flow_id = data.flow_id,
+            flow_code = data.flow_code,
+            flow_name = data.flow_name,
+            flow_rpa_type = data.flow_rpa_type,
+            flow_exe_env = data.flow_exe_env,
+            sub_source=data.sub_source,
+            status = False,
+            error_msg = "task is expired , robot delete task",
+            print_str = None,
+            result = "task is expired , robot delete task",
+            code=RpaExeResultCodeEnum.FLOW_EXE_ERROR.value[1]
+            )
+            # report
+            requests.post(result_url, json=request_tool.request_base_model_json_builder(result_parms))
+
+        # get url
+        api_pash = app_config.HEART_BEAT_CHECK_API
+        url = control_url + api_pash
+
         # build params
-        result_parms = FlowTaskExeResDTO(
-        task_id = data.task_id,
-        site_id = data.site_id,
-        flow_id = data.flow_id,
-        flow_code = data.flow_code,
-        flow_name = data.flow_name,
-        flow_rpa_type = data.flow_rpa_type,
-        flow_exe_env = data.flow_exe_env,
-        sub_source=data.sub_source,
-        status = False,
-        error_msg = "task is expired , robot delete task",
-        print_str = None,
-        result = "task is expired , robot delete task",
-        code=RpaExeResultCodeEnum.FLOW_EXE_ERROR.value[1]
+        data = HeartbeatCheckReqDTO(
+            robot_code=build_robot_code(),
+            robot_ip=get_robot_ip(),
+            port= app_config.ROBOT_SERVER_PORT,
+            task_id=get_current_task_id()
         )
+
         # report
-        requests.post(result_url, json=request_tool.request_base_model_json_builder(result_parms))
-
-    # get url
-    api_pash = app_config.HEART_BEAT_CHECK_API
-    url = control_url + api_pash
-
-    # build params
-    data = HeartbeatCheckReqDTO(
-        robot_code=build_robot_code(),
-        robot_ip=get_robot_ip(),
-        port= app_config.ROBOT_SERVER_PORT,
-        task_id=get_current_task_id()
-    )
-
-    # report
-    requests.post(url, json=request_tool.request_base_model_json_builder(data))
+        requests.post(url, json=request_tool.request_base_model_json_builder(data))
+    except Exception as e:
+        logs_tool.log_business_error(title="heartbeat_check_handler",message="heartbeat error",data=str(e),exc_info=e)
 
 def build_robot_code() -> str:
     args = []
@@ -103,21 +106,24 @@ def get_robot_ip() -> str:
     
 
 def robot_log_report_handler(log_type:int,message:str,current_task_id:int):
-    # build params
-    params = RobotLogReportReqDTO(
-        robot_code=build_robot_code(),
-        task_id=current_task_id,
-        log_type=log_type,
-        message=message
-    )
+    try:
+        # build params
+        params = RobotLogReportReqDTO(
+            robot_code=build_robot_code(),
+            task_id=current_task_id,
+            log_type=log_type,
+            message=message
+        )
 
-    # get url
-    control_url = app_config.EASYRPA_URL
-    api_pash = app_config.ROBOT_LOG_REPORT_API
-    url = control_url + api_pash
+        # get url
+        control_url = app_config.EASYRPA_URL
+        api_pash = app_config.ROBOT_LOG_REPORT_API
+        url = control_url + api_pash
 
-    # report
-    requests.post(url, json=request_tool.request_base_model_json_builder(params))
+        # report
+        requests.post(url, json=request_tool.request_base_model_json_builder(params))
+    except Exception as e:
+        logs_tool.log_business_error(title="robot_log_report_handler",message="robot log report error",data=current_task_id,exc_info=e)
 
 def set_current_task(req:FlowTaskExeReqDTO):
     data = {}

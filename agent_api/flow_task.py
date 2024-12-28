@@ -82,7 +82,7 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
                                 ,callback_url=url)
     except Exception as e:
         # add log
-        logs_tool.log_script_error(title="flow_task_async_exe",message="task run error",data=req,exc_info=e)
+        logs_tool.log_script_error(title="flow_task_async_exe",message="task run error",data=None,exc_info=e)
 
         # report log
         current_task_id = dispatch_task_core.get_current_task_id()

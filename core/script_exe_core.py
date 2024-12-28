@@ -35,7 +35,7 @@ class ScriptExeCore:
 
         except Exception as e:
             # add log
-            logs_tool.log_script_error(title="async_exe_script",message="async_exe_script run error",data=flow_task,exc_info=e)
+            logs_tool.log_script_error(title="async_exe_script",message="async_exe_script run error",data=None,exc_info=e)
             
             current_task_id = dispatch_task_core.get_current_task_id()
 
