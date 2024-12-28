@@ -140,7 +140,7 @@ def get_current_task_id() -> int:
 def current_task_is_expired() -> bool:
     data = local_store_tools.get_data("current_task")
     if data is not None:
-        if datetime.datetime.now().timestamp() - data.get("set_time") > data.get("max_exe_time") * 1000:
+        if datetime.datetime.now().timestamp() - data.get("set_time") > data.get("max_exe_time"):
             return True
     return False
 
