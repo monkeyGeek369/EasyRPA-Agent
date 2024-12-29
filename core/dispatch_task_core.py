@@ -49,6 +49,8 @@ def agent_heartbeat():
             result = "task is expired , robot delete task",
             code=RpaExeResultCodeEnum.FLOW_EXE_ERROR.value[1]
             )
+            # release robot
+            release_current_task()
             # report
             requests.post(result_url, json=request_tool.request_base_model_json_builder(result_parms))
 
