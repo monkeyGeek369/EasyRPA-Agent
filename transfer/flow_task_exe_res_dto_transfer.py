@@ -10,11 +10,9 @@ def res_to_FlowTaskExeResDTO(req:FlowTaskExeReqDTO,res:ScriptExeResult) -> FlowT
         flow_code = req.flow_code,
         flow_name = req.flow_name,
         flow_rpa_type = req.flow_rpa_type,
-        flow_exe_env = req.flow_exe_env,
         sub_source=req.sub_source,
         status = res.status,
         error_msg = res.error_msg,
-        print_str = res.print_str,
         result = res.result,
         code=res.code
         )

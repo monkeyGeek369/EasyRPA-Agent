@@ -14,9 +14,8 @@ def req_to_FlowTaskExeReqDTO(req_json:str) -> FlowTaskExeReqDTO:
         flow_code=model.get("flow_code"),
         flow_name=model.get("flow_name"),
         flow_rpa_type=model.get("flow_rpa_type"),
-        flow_exe_env=model.get("flow_exe_env"),
         flow_standard_message=model.get("flow_standard_message"),
-        flow_exe_script=model.get("flow_exe_script"),
+        script_hash=model.get("script_hash"),
         sub_source=model.get("sub_source")
     )
     return ret

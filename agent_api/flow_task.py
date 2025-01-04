@@ -42,9 +42,8 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
             flow_code=req.get("flow_code"),
             flow_name=req.get("flow_name"),
             flow_rpa_type=req.get("flow_rpa_type"),
-            flow_exe_env=req.get("flow_exe_env"),
             flow_standard_message=req.get("flow_standard_message"),
-            flow_exe_script=req.get("flow_exe_script"),
+            script_hash=req.get("script_hash"),
             sub_source=req.get("sub_source"),
             max_exe_time=req.get("max_exe_time") if req.get("max_exe_time") is not None else 3600
         )
@@ -55,11 +54,6 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
 
         # 校验请求对象
         flow_task_exe_req_dto_check.base_check(flow_task)
-
-        # 执行脚本
-        env_activate_command = env_activate_command_builder(flow_task.flow_exe_env)
-
-        python_interpreter = 'python'
         
         # 构建执行参数
         params = my_debug.env_params_build(header=get_current_header()
@@ -71,15 +65,16 @@ def flow_task_async_exe(req:FlowTaskExeReqDTO):
         api_pash = app_config.TASK_RESULT_PUSH_API
         url = control_url + api_pash
 
+        # script search url
+        script_url = control_url + "/flow/search/script"
+
         # 异步执行脚本
         script_exe = ScriptExeCore()
         ThreadPoolUtil.submit_task("common",script_exe.async_exe_script
                                 ,flow_task=flow_task
-                                ,env_activate_command=env_activate_command
-                                ,python_interpreter=python_interpreter
-                                ,flow_exe_script=flow_task.flow_exe_script
                                 ,params=params
-                                ,callback_url=url)
+                                ,callback_url=url
+                                ,script_url=script_url)
     except Exception as e:
         # add log
         logs_tool.log_script_error(title="flow_task_async_exe",message="task run error",data=None,exc_info=e)

@@ -1,25 +1,50 @@
-from easyrpa.script_exe.subprocess_python_script import subprocess_script_run
+from easyrpa.script_exe import sync_python_script
 from transfer.flow_task_exe_res_dto_transfer import res_to_FlowTaskExeResDTO
 from easyrpa.models.agent_models.flow_task_exe_req_dto import FlowTaskExeReqDTO
+from easyrpa.models.easy_rpa_exception import EasyRpaException
+from easyrpa.enums.easy_rpa_exception_code_enum import EasyRpaExceptionCodeEnum
+from easyrpa.models.flow.flow_script_search_dto import FlowScriptSearchDTO
 from easyrpa.enums.sys_log_type_enum import SysLogTypeEnum
+from easyrpa.enums.script_type_enum import ScriptTypeEnum
 from core import dispatch_task_core
 import requests
 from easyrpa.tools import request_tool,logs_tool
 
 class ScriptExeCore:
-    def async_exe_script(self,flow_task:FlowTaskExeReqDTO,env_activate_command,python_interpreter,flow_exe_script,params,callback_url:str):
+    def async_exe_script(self,flow_task:FlowTaskExeReqDTO,params,callback_url:str,script_url:str):
         try:
             logs_tool.log_business_info(title="async_exe_script",message="script is running",data=flow_task.task_id)
 
-            # 执行脚本
-            script_result = subprocess_script_run(env_activate_command=env_activate_command
-                                                ,python_interpreter=python_interpreter
-                                                ,script=flow_exe_script
-                                                ,dict_args=params)
+            # check script is exist
+            is_exist = sync_python_script.script_is_exist(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash)
+
+            # if not exist, create script file
+            if not is_exist:
+                # get script
+                script_search_params = FlowScriptSearchDTO(
+                    flow_code=flow_task.flow_code,
+                    script_type=ScriptTypeEnum.EXECUTION.value[0]
+                )
+                script = None
+                script_response = requests.post(script_url, json=request_tool.request_base_model_json_builder(script_search_params))
+                if script_response is not None and script_response.status_code == 200:
+                    result_txt = logs_tool.JsonTool.any_to_dict(script_response.text)
+                    if result_txt.get("code") == 200 and result_txt.get("data") is not None:
+                        script_response_data = logs_tool.JsonTool.any_to_dict(result_txt.get("data"))
+                        if script_response_data is not None and script_response_data.get("script") is not None:
+                            script = script_response_data.get("script")
+                
+                if script is None:
+                    raise EasyRpaException("get flow exe script failed",EasyRpaExceptionCodeEnum.DATA_NULL,None,flow_task)
+                # create script file
+                sync_python_script.create_script_file(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,script=script)
+
+            # script exe
+            script_result = sync_python_script.sync_script_run(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,params=params)
             
             logs_tool.log_business_info(title="async_exe_script",message="script is runned",data=flow_task.task_id)
 
-            # 构建回执对象
+            # build result
             result = res_to_FlowTaskExeResDTO(req=flow_task,res=script_result)
 
             # robot log report
