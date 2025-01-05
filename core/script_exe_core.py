@@ -65,11 +65,11 @@ class ScriptExeCore:
             # remove task id
             dispatch_task_core.release_current_task()
             
-            # send result
-            requests.post(callback_url, json=request_tool.request_base_model_json_builder(result))
-
             # heartbeat inmediate
             dispatch_task_core.agent_heartbeat()
+
+            # send result
+            requests.post(callback_url, json=request_tool.request_base_model_json_builder(result))
 
         except Exception as e:
             # add log
