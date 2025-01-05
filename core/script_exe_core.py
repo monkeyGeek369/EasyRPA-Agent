@@ -7,8 +7,18 @@ from easyrpa.models.flow.flow_script_search_dto import FlowScriptSearchDTO
 from easyrpa.enums.sys_log_type_enum import SysLogTypeEnum
 from easyrpa.enums.script_type_enum import ScriptTypeEnum
 from core import dispatch_task_core
-import requests
+import requests,os
 from easyrpa.tools import request_tool,logs_tool
+
+
+def get_project_root_path() -> str:
+    project_root = os.path.dirname(os.path.abspath(__file__))
+    while not os.path.isfile(os.path.join(project_root, 'setup.py')) and not os.path.isfile(os.path.join(project_root, 'requirements.txt')):
+        if project_root == os.path.dirname(project_root):
+            project_root = None
+            break
+        project_root = os.path.dirname(project_root)
+    return project_root
 
 class ScriptExeCore:
     def async_exe_script(self,flow_task:FlowTaskExeReqDTO,params,callback_url:str,script_url:str):
@@ -16,7 +26,8 @@ class ScriptExeCore:
             logs_tool.log_business_info(title="async_exe_script",message="script is running",data=flow_task.task_id)
 
             # check script is exist
-            is_exist = sync_python_script.script_is_exist(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash)
+            project_root = get_project_root_path()
+            is_exist = sync_python_script.script_is_exist(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,project_root=project_root)
 
             # if not exist, create script file
             if not is_exist:
@@ -37,10 +48,10 @@ class ScriptExeCore:
                 if script is None:
                     raise EasyRpaException("get flow exe script failed",EasyRpaExceptionCodeEnum.DATA_NULL,None,flow_task)
                 # create script file
-                sync_python_script.create_script_file(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,script=script)
+                sync_python_script.create_script_file(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,script=script,project_root=project_root)
 
             # script exe
-            script_result = sync_python_script.sync_script_run(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,params=params)
+            script_result = sync_python_script.sync_script_run(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,params=params,project_root=project_root)
             
             logs_tool.log_business_info(title="async_exe_script",message="script is runned",data=flow_task.task_id)
 

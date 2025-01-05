@@ -41,11 +41,9 @@ def agent_heartbeat():
             flow_code = data.flow_code,
             flow_name = data.flow_name,
             flow_rpa_type = data.flow_rpa_type,
-            flow_exe_env = data.flow_exe_env,
             sub_source=data.sub_source,
             status = False,
             error_msg = "task is expired , robot delete task",
-            print_str = None,
             result = "task is expired , robot delete task",
             code=RpaExeResultCodeEnum.FLOW_EXE_ERROR.value[1]
             )
