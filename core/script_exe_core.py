@@ -31,6 +31,7 @@ class ScriptExeCore:
 
             # if not exist, create script file
             if not is_exist:
+                logs_tool.log_business_info(title="async_exe_script",message="script is creating",data=flow_task.task_id)
                 # get script
                 script_search_params = FlowScriptSearchDTO(
                     flow_code=flow_task.flow_code,
@@ -49,10 +50,10 @@ class ScriptExeCore:
                     raise EasyRpaException("get flow exe script failed",EasyRpaExceptionCodeEnum.DATA_NULL,None,flow_task)
                 # create script file
                 sync_python_script.create_script_file(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,script=script,project_root=project_root)
+                logs_tool.log_business_info(title="async_exe_script",message="script is created",data=flow_task.task_id)
 
             # script exe
             script_result = sync_python_script.sync_script_run(flow_code=flow_task.flow_code,script_type=ScriptTypeEnum.EXECUTION.value[0],script_hash=flow_task.script_hash,params=params,project_root=project_root)
-            
             logs_tool.log_business_info(title="async_exe_script",message="script is runned",data=flow_task.task_id)
 
             # build result
@@ -72,8 +73,7 @@ class ScriptExeCore:
             requests.post(callback_url, json=request_tool.request_base_model_json_builder(result))
 
         except Exception as e:
-            # add log
-            logs_tool.log_script_error(title="async_exe_script",message="async_exe_script run error",data=None,exc_info=e)
+            logs_tool.log_script_info(title="async_exe_script",message="async_exe_script run error , record start",data=None)
             
             # remove task id
             current_task_id = dispatch_task_core.get_current_task_id()
@@ -83,7 +83,51 @@ class ScriptExeCore:
             dispatch_task_core.agent_heartbeat()
 
             # robot log report
-            dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error , current task is ' + str(current_task_id) + '; message: ' + str(e),current_task_id=current_task_id)
+            error_info = safe_exception_to_string(e)
+            dispatch_task_core.robot_log_report_handler(log_type=SysLogTypeEnum.DEBUG.value[1],message='robot exec error , current task is ' + str(current_task_id) + '; message: ' + error_info,current_task_id=current_task_id)
             
-
+            # add log
+            logs_tool.log_script_error(title="async_exe_script",message="async_exe_script run error",data=None,exc_info=e)
+            
+def safe_exception_to_string(e) -> str:
+    """
+    将异常对象 e 安全地转换为字符串，即使其内部实现有缺陷或参数无法转换。
+    保证在任何情况下不会抛出异常。
+    """
+    default_msg = "Unknown error"
+    
+    if e is None:
+        return default_msg
+    
+    # 第一步：尝试直接调用 str(e)
+    try:
+        return str(e)
+    except Exception:
+        pass
+    
+    # 第二步：尝试获取异常类型和参数
+    try:
+        exc_type = e.__class__.__name__
+    except AttributeError:
+        exc_type = "UnknownException"
+    
+    # 第三步：安全处理异常参数 (e.args)
+    try:
+        args = e.args
+    except AttributeError:
+        args = ()
+    
+    arg_strings = []
+    for arg in args:
+        try:
+            arg_str = str(arg)
+        except Exception:
+            arg_str = "<无法转换的参数>"
+        arg_strings.append(arg_str)
+    
+    # 组合信息
+    if arg_strings:
+        return f"{exc_type}: {', '.join(arg_strings)}"
+    else:
+        return exc_type
         
