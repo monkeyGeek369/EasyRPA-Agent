@@ -17,3 +17,5 @@ pack.bat
 gitcmd.bat
 logs
 poetry.lock
+
+flow_script/*
